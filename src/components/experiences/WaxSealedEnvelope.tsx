@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Heart, CheckCircle2 } from 'lucide-react';
 import { launchConfetti } from '../ui/confetti.js';
+import { playSealCrackSound } from '../../lib/audio/sfx.js';
 
 interface EnvelopeProps {
   senderName: string;
@@ -22,6 +23,7 @@ export const WaxSealedEnvelope: React.FC<EnvelopeProps> = ({
   const handleOpen = () => {
     if (!isOpen) {
       setIsOpen(true);
+      playSealCrackSound();
       launchConfetti(undefined, undefined, 'heart');
     }
   };

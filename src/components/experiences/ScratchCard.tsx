@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Sparkles, Eye } from 'lucide-react';
 import { launchConfetti } from '../ui/confetti.js';
+import { playScratchSound, playChime } from '../../lib/audio/sfx.js';
 
 interface ScratchCardProps {
   headline: string;
@@ -20,6 +21,7 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isRevealed, setIsRevealed] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const lastSoundRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -63,6 +65,13 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({
     ctx.arc(x, y, 22, 0, Math.PI * 2);
     ctx.fill();
 
+    // Sound effect with throttle
+    const now = Date.now();
+    if (now - lastSoundRef.current > 120) {
+      lastSoundRef.current = now;
+      playScratchSound();
+    }
+
     checkPercentScratched();
   };
 
@@ -93,6 +102,7 @@ export const ScratchCard: React.FC<ScratchCardProps> = ({
   const triggerFullReveal = () => {
     if (isRevealed) return;
     setIsRevealed(true);
+    playChime(1046.5); // High crystal chime
     launchConfetti();
     if (onRevealed) onRevealed();
   };

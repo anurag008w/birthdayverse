@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Flame, Mic, RefreshCw } from 'lucide-react';
 import { launchFireworks } from '../ui/confetti.js';
+import { playBlowoutSound } from '../../lib/audio/sfx.js';
 
 interface CakeProps {
   birthdayName: string;
@@ -29,6 +30,7 @@ export const InteractiveCake: React.FC<CakeProps> = ({
     setCandlesLit(Array(candlesCount).fill(false));
     setIsBlownOut(true);
     stopListening();
+    playBlowoutSound();
     launchFireworks();
     if (onBlownOut) onBlownOut();
   };

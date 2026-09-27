@@ -361,12 +361,21 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between">
       {/* Top Navbar */}
-      <header className="border-b border-zinc-800 bg-zinc-900/60 backdrop-blur-md px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <span className="font-serif text-lg font-bold tracking-tight text-white flex items-center gap-2">
+      <header className="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur-md px-4 sm:px-6 py-3.5 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <a
+            href="/"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/15 text-xs text-zinc-300 hover:text-white transition-all shadow-sm"
+            title="Back to Home"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span className="font-semibold">Home</span>
+          </a>
+
+          <span className="font-serif text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-pink-400" /> BirthdayVerse Studio
           </span>
-          <div className="hidden sm:flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded-full text-[11px] font-mono border border-zinc-700">
+          <div className="hidden md:flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded-full text-[11px] font-mono border border-zinc-700">
             <span
               className={`w-2 h-2 rounded-full ${
                 saveStatus === 'github_saved'
@@ -377,7 +386,7 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
               }`}
             />
             <span className="text-zinc-300">
-              {saveStatus === 'github_saved' ? 'Saved securely (GitHub)' : saveStatus === 'saving' ? 'Saving...' : 'Draft (Saved locally)'}
+              {saveStatus === 'github_saved' ? 'Saved (GitHub)' : saveStatus === 'saving' ? 'Saving...' : 'Draft'}
             </span>
           </div>
         </div>
@@ -561,6 +570,23 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
                   ))}
                 </div>
               </div>
+
+              {/* Big Action Button for Quick Mode */}
+              <div className="pt-2">
+                <button
+                  onClick={handlePublish}
+                  disabled={isPublishing}
+                  className="w-full py-4 bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 hover:from-pink-600 hover:to-indigo-700 disabled:opacity-50 text-white font-bold rounded-2xl text-xs uppercase tracking-wider transition-all shadow-xl shadow-pink-500/25 flex items-center justify-center gap-2 hover:scale-[1.01]"
+                >
+                  {isPublishing ? (
+                    <>Saving to GitHub...</>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" /> Publish & Create Surprise Link
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           ) : (
             /* 12-Step Deep Customizer */
@@ -736,12 +762,14 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
         </div>
 
         {/* Right Live Interactive Preview Viewport */}
-        <div className="lg:col-span-7 bg-black flex flex-col justify-center items-center overflow-hidden relative">
-          <UniversalExperienceRenderer
-            data={currentPreviewData}
-            isPreview={true}
-            appUrl={appUrl}
-          />
+        <div className="lg:col-span-7 bg-zinc-950 flex flex-col justify-start items-center overflow-y-auto max-h-[calc(100vh-65px)] p-2 sm:p-4 lg:p-6 relative">
+          <div className="w-full h-full flex flex-col rounded-3xl border border-zinc-800 bg-slate-950 overflow-hidden shadow-2xl relative min-h-[640px]">
+            <UniversalExperienceRenderer
+              data={currentPreviewData}
+              isPreview={true}
+              appUrl={appUrl}
+            />
+          </div>
         </div>
       </div>
     </div>

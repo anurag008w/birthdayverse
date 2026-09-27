@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Gift, Sparkles, Heart } from 'lucide-react';
 import { launchConfetti } from '../ui/confetti.js';
+import { playBoxOpenSound } from '../../lib/audio/sfx.js';
 
 interface GiftBoxProps {
   surpriseHeadline: string;
@@ -22,6 +23,7 @@ export const GiftBoxUnboxing: React.FC<GiftBoxProps> = ({
   const handleOpen = () => {
     if (!unboxed) {
       setUnboxed(true);
+      playBoxOpenSound();
       launchConfetti(undefined, undefined, 'star');
     }
   };

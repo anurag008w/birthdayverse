@@ -18,6 +18,7 @@ import { getTemplateById, TemplateDefinition } from '../../lib/templates/registr
 import { calculateCountdown } from '../../lib/utils/dates.js';
 import { generateQrSvg } from '../../lib/utils/qrcode.js';
 import { launchConfetti, launchFireworks } from '../ui/confetti.js';
+import { ambientPlayer, playChime } from '../../lib/audio/sfx.js';
 import { InteractiveCake } from './InteractiveCake.js';
 import { WaxSealedEnvelope } from './WaxSealedEnvelope.js';
 import { GiftBoxUnboxing } from './GiftBoxUnboxing.js';
@@ -64,34 +65,15 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
     return () => clearInterval(timer);
   }, [data.birthdayDate, data.timezone]);
 
-  // Audio BGM Synthesizer
+  // Ambient BGM Controller
   useEffect(() => {
-    if (isMuted) return;
-
-    let audioCtx: AudioContext | null = null;
-    let osc: OscillatorNode | null = null;
-    let gain: GainNode | null = null;
-
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      audioCtx = new AudioCtx();
-      osc = audioCtx.createOscillator();
-      gain = audioCtx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(432, audioCtx.currentTime); // Relaxing warm harmonic 432Hz
-      gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-    } catch {
-      // Audio autoplay policy handled silently
+    if (isMuted) {
+      ambientPlayer.stop();
+    } else {
+      ambientPlayer.start();
     }
-
     return () => {
-      if (osc) osc.stop();
-      if (audioCtx) audioCtx.close().catch(() => {});
+      ambientPlayer.stop();
     };
   }, [isMuted]);
 
@@ -100,6 +82,7 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
 
   const handleNextScene = () => {
     if (currentSceneIndex < scenes.length - 1) {
+      playChime(659.25);
       setCurrentSceneIndex(currentSceneIndex + 1);
       if (currentSceneIndex + 1 === scenes.length - 1) {
         launchFireworks();
@@ -109,6 +92,7 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
 
   const handlePrevScene = () => {
     if (currentSceneIndex > 0) {
+      playChime(440);
       setCurrentSceneIndex(currentSceneIndex - 1);
     }
   };
@@ -177,28 +161,92 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
     >
       {/* Dynamic Animated Particle Atmosphere */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {[...Array(30)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full opacity-30 animate-pulse"
-            style={{
-              width: `${(i % 4) * 2 + 2}px`,
-              height: `${(i % 4) * 2 + 2}px`,
-              backgroundColor: theme.accent,
-              top: `${(i * 17) % 100}%`,
-              left: `${(i * 23) % 100}%`,
-              animationDuration: `${3 + (i % 4)}s`
-            }}
-          />
-        ))}
+        {theme.particles === 'hearts' ? (
+          [...Array(24)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute text-pink-400/40 select-none animate-bounce"
+              style={{
+                top: `${(i * 19) % 95}%`,
+                left: `${(i * 13) % 95}%`,
+                fontSize: `${12 + (i % 3) * 6}px`,
+                animationDuration: `${2.5 + (i % 4)}s`,
+                opacity: 0.3 + (i % 3) * 0.2
+              }}
+            >
+              ♥
+            </div>
+          ))
+        ) : theme.particles === 'confetti' ? (
+          [...Array(32)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-sm opacity-40 animate-pulse"
+              style={{
+                width: `${(i % 3) * 3 + 4}px`,
+                height: `${(i % 2) * 5 + 6}px`,
+                backgroundColor: ['#f43f5e', '#ec4899', '#a855f7', '#3b82f6', '#fbbf24', '#10b981'][i % 6],
+                top: `${(i * 13) % 95}%`,
+                left: `${(i * 29) % 95}%`,
+                transform: `rotate(${i * 45}deg)`,
+                animationDuration: `${1.5 + (i % 3)}s`
+              }}
+            />
+          ))
+        ) : theme.particles === 'bubbles' ? (
+          [...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full border border-cyan-300/40 bg-cyan-400/10 shadow-lg shadow-cyan-500/20 animate-pulse"
+              style={{
+                width: `${(i % 4) * 8 + 10}px`,
+                height: `${(i % 4) * 8 + 10}px`,
+                top: `${(i * 17) % 90}%`,
+                left: `${(i * 23) % 92}%`,
+                animationDuration: `${3 + (i % 3)}s`
+              }}
+            />
+          ))
+        ) : theme.particles === 'dust' ? (
+          [...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-amber-400/50 shadow-md shadow-amber-400/30 animate-pulse"
+              style={{
+                width: `${(i % 3) * 1.5 + 2}px`,
+                height: `${(i % 3) * 1.5 + 2}px`,
+                top: `${(i * 21) % 95}%`,
+                left: `${(i * 19) % 95}%`,
+                animationDuration: `${2.5 + (i % 3)}s`
+              }}
+            />
+          ))
+        ) : (
+          [...Array(40)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full bg-white animate-pulse"
+              style={{
+                width: `${(i % 3) + 1.5}px`,
+                height: `${(i % 3) + 1.5}px`,
+                backgroundColor: i % 5 === 0 ? theme.accent : '#ffffff',
+                top: `${(i * 17) % 98}%`,
+                left: `${(i * 23) % 98}%`,
+                boxShadow: i % 4 === 0 ? `0 0 8px ${theme.accent}` : 'none',
+                opacity: 0.2 + (i % 4) * 0.25,
+                animationDuration: `${2 + (i % 4)}s`
+              }}
+            />
+          ))
+        )}
       </div>
 
       {/* Creator Preview Toolbar (Strictly disabled on public link) */}
       {isPreview && (
-        <div className="w-full bg-zinc-950/90 border-b border-zinc-800 px-4 py-2 z-50 flex items-center justify-between text-xs text-zinc-300">
+        <div className="w-full bg-zinc-950/95 border-b border-zinc-800 px-4 py-2 relative z-20 flex items-center justify-between text-xs text-zinc-300">
           <div className="flex items-center gap-2 font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>CREATOR PREVIEW MODE</span>
+            <span className="text-[11px] font-semibold tracking-wider">LIVE PREVIEW</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -222,11 +270,11 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
 
             {/* Scene Skipper */}
             <div className="flex items-center gap-1 bg-zinc-800 px-2 py-1 rounded border border-zinc-700">
-              <span>Scene {currentSceneIndex + 1}/{scenes.length}</span>
-              <button onClick={handlePrevScene} disabled={currentSceneIndex === 0} className="disabled:opacity-30">
+              <button onClick={handlePrevScene} disabled={currentSceneIndex === 0} className="disabled:opacity-30 p-0.5 hover:text-white" title="Previous Scene">
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              <button onClick={handleNextScene} disabled={isFinalScene} className="disabled:opacity-30">
+              <span className="font-mono text-[11px] px-1">Scene {currentSceneIndex + 1}/{scenes.length}</span>
+              <button onClick={handleNextScene} disabled={isFinalScene} className="disabled:opacity-30 p-0.5 hover:text-white" title="Next Scene">
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -282,10 +330,10 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
               {data.coreMessage || "Today is all about celebrating the radiant energy, kindness, and magic you bring into everyone's lives."}
             </p>
 
-            <div className="pt-4">
+            <div className="pt-6 flex items-center justify-center gap-3">
               <button
                 onClick={handleNextScene}
-                className="px-8 py-3.5 rounded-full font-bold text-sm tracking-wide shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2 mx-auto"
+                className="px-8 py-3.5 rounded-full font-bold text-sm tracking-wide shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
                 style={{ backgroundColor: theme.accent, color: '#000000' }}
               >
                 Begin the Journey <ChevronRight className="w-4 h-4" />
@@ -303,10 +351,17 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
               candlesCount={data.interactionConfiguration?.cake?.candlesCount || 3}
             />
 
-            <div className="mt-6">
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <button
+                onClick={handlePrevScene}
+                className="px-5 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-all inline-flex items-center gap-1.5"
+              >
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
               <button
                 onClick={handleNextScene}
                 className="px-6 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 transition-all inline-flex items-center gap-2"
+                style={{ backgroundColor: theme.accent, color: '#000000' }}
               >
                 Continue Surprise <ChevronRight className="w-4 h-4" />
               </button>
@@ -314,7 +369,58 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
           </div>
         )}
 
-        {/* Scene 3: Sealed Envelope or Letter */}
+        {/* Scene 3: Grand Birthday Reveal (Never blank!) */}
+        {currentScene.type === 'reveal' && (
+          <div className="w-full max-w-2xl text-center space-y-6 animate-fadeIn p-6">
+            <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full border border-pink-500/40 bg-pink-500/10 text-pink-300 text-xs font-mono tracking-widest uppercase shadow-lg shadow-pink-500/10">
+              <Sparkles className="w-4 h-4 text-amber-300 animate-spin" /> THE BIG MOMENT
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl font-extrabold font-serif tracking-tight leading-tight">
+              Happy Birthday, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-rose-400 to-indigo-300 drop-shadow-xl">
+                {data.birthdayName}! ✨
+              </span>
+            </h1>
+
+            <div className="p-6 sm:p-8 rounded-3xl border border-white/15 bg-white/5 backdrop-blur-md shadow-2xl space-y-4 max-w-xl mx-auto">
+              <p className="text-base sm:text-lg text-zinc-200 leading-relaxed font-serif">
+                "{data.coreMessage || "May your special day be overflowing with the joy, magic, and boundless blessings you deserve."}"
+              </p>
+              {data.funnyDetails && (
+                <p className="text-sm text-amber-300/90 font-medium italic border-t border-white/10 pt-3">
+                  "{data.funnyDetails}"
+                </p>
+              )}
+              <div className="pt-2">
+                <button
+                  onClick={() => launchConfetti()}
+                  className="px-5 py-2 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-all inline-flex items-center gap-2 border border-white/20"
+                >
+                  🎉 Shower With Confetti
+                </button>
+              </div>
+            </div>
+
+            <div className="pt-4 flex items-center justify-center gap-3">
+              <button
+                onClick={handlePrevScene}
+                className="px-5 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-all inline-flex items-center gap-1.5"
+              >
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+              <button
+                onClick={handleNextScene}
+                className="px-7 py-3 rounded-full font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 hover:scale-105 inline-flex items-center gap-2"
+                style={{ backgroundColor: theme.accent, color: '#000000' }}
+              >
+                Make a Wish Next <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Scene 4: Sealed Envelope or Letter */}
         {currentScene.type === 'message' && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
             <WaxSealedEnvelope
@@ -325,10 +431,17 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
               signature={data.creatorName}
             />
 
-            <div className="mt-6">
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <button
+                onClick={handlePrevScene}
+                className="px-5 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-all inline-flex items-center gap-1.5"
+              >
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
               <button
                 onClick={handleNextScene}
                 className="px-6 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 transition-all inline-flex items-center gap-2"
+                style={{ backgroundColor: theme.accent, color: '#000000' }}
               >
                 Next Surprise <ChevronRight className="w-4 h-4" />
               </button>
@@ -336,7 +449,7 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
           </div>
         )}
 
-        {/* Scene 4: Scratch Card / Gift Box / Constellation / Trivia */}
+        {/* Scene 5: Scratch Card / Gift Box / Constellation / Trivia */}
         {(currentScene.type === 'surprise' || currentScene.type === 'curiosity') && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
             {data.interactionConfiguration?.hasScratchCard ? (
@@ -366,18 +479,27 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
               />
             )}
 
-            <div className="mt-6">
+            <div className="mt-8 flex items-center justify-center gap-3">
+              {currentSceneIndex > 0 && (
+                <button
+                  onClick={handlePrevScene}
+                  className="px-5 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-all inline-flex items-center gap-1.5"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Back
+                </button>
+              )}
               <button
                 onClick={handleNextScene}
                 className="px-6 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 transition-all inline-flex items-center gap-2"
+                style={{ backgroundColor: theme.accent, color: '#000000' }}
               >
-                Finale <ChevronRight className="w-4 h-4" />
+                Continue <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         )}
 
-        {/* Scene 5: Grand Finale Celebration */}
+        {/* Scene 6: Grand Finale Celebration */}
         {currentScene.type === 'finale' && (
           <div className="text-center space-y-6 max-w-2xl animate-fadeIn p-6">
             <div className="w-20 h-20 mx-auto bg-gradient-to-tr from-amber-400 via-pink-500 to-indigo-500 rounded-full flex items-center justify-center text-white shadow-2xl animate-pulse">
@@ -395,7 +517,14 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
               "{data.finalWish || 'May this trip around the sun bring you endless blessings, pure laughter, and dreams realized.'}"
             </p>
 
-            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <button
+                onClick={handlePrevScene}
+                className="px-5 py-3 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-all inline-flex items-center gap-1.5"
+              >
+                <ChevronLeft className="w-4 h-4" /> Back
+              </button>
+
               <button
                 onClick={() => launchFireworks()}
                 className="px-8 py-3 rounded-full font-bold text-sm shadow-xl transition-transform hover:scale-105 flex items-center gap-2"
@@ -410,6 +539,43 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
               >
                 <Share2 className="w-4 h-4" /> Share This Memory
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Fallback for any other custom scene type (Never blank!) */}
+        {currentScene.type !== 'opening' &&
+         currentScene.type !== 'interaction' &&
+         currentScene.type !== 'reveal' &&
+         currentScene.type !== 'message' &&
+         currentScene.type !== 'surprise' &&
+         currentScene.type !== 'curiosity' &&
+         currentScene.type !== 'finale' && (
+          <div className="w-full max-w-2xl text-center space-y-6 animate-fadeIn p-6">
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-white">
+              {currentScene.title || `Celebrating ${data.birthdayName}`}
+            </h2>
+            <p className="text-base text-zinc-300 max-w-lg mx-auto leading-relaxed">
+              {currentScene.subtitle || data.coreMessage}
+            </p>
+            <div className="pt-6 flex items-center justify-center gap-3">
+              {currentSceneIndex > 0 && (
+                <button
+                  onClick={handlePrevScene}
+                  className="px-5 py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold border border-white/20 bg-white/5 hover:bg-white/15 text-zinc-300 hover:text-white transition-all inline-flex items-center gap-1.5"
+                >
+                  <ChevronLeft className="w-4 h-4" /> Back
+                </button>
+              )}
+              {!isFinalScene && (
+                <button
+                  onClick={handleNextScene}
+                  className="px-7 py-2.5 rounded-full font-bold text-xs uppercase tracking-wider shadow-xl transition-all"
+                  style={{ backgroundColor: theme.accent, color: '#000000' }}
+                >
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         )}
