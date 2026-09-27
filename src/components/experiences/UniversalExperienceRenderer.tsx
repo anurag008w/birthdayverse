@@ -315,12 +315,21 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
         {/* Scene 1: Opening & Kinetic Typography */}
         {currentScene.type === 'opening' && (
           <div className="text-center space-y-6 max-w-2xl animate-fadeIn">
+            {/* Themed Badge */}
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono tracking-widest uppercase border border-white/20 bg-white/5 text-amber-300">
-              <Sparkles className="w-3.5 h-3.5" /> {data.birthdayDate}
+              <Sparkles className="w-3.5 h-3.5" />
+              {template.experienceMode === 'arcade' ? '★ PLAYER 1 UNLOCKED ★' :
+               template.experienceMode === 'nightsky' ? '✦ DEEP SPACE OBSERVATORY ✦' :
+               template.category === 'romantic' ? '♥ EXCLUSIVE MEMOIR ♥' :
+               template.category === 'bestie' ? '⚡ OFFICIAL BESTIE SURPRISE ⚡' :
+               `${template.name} • ${data.birthdayDate}`}
             </span>
 
             <h1 className="text-4xl sm:text-6xl font-bold tracking-tight leading-tight">
-              A Universe Created For <br />
+              {template.experienceMode === 'arcade' ? 'LEVEL UP!' :
+               template.category === 'romantic' ? 'Written in the Stars For' :
+               template.category === 'bestie' ? 'The Legend of' :
+               'A Universe Created For'} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-pink-400 to-indigo-400 drop-shadow-md">
                 {data.birthdayName}
               </span>
@@ -336,7 +345,9 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
                 className="px-8 py-3.5 rounded-full font-bold text-sm tracking-wide shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
                 style={{ backgroundColor: theme.accent, color: '#000000' }}
               >
-                Begin the Journey <ChevronRight className="w-4 h-4" />
+                {template.experienceMode === 'arcade' ? 'Press Start ▶' :
+                 template.experienceMode === 'nightsky' ? 'Enter the Galaxy ✦' :
+                 'Begin the Journey'} <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -449,27 +460,31 @@ export const UniversalExperienceRenderer: React.FC<ExperienceRendererProps> = ({
           </div>
         )}
 
-        {/* Scene 5: Scratch Card / Gift Box / Constellation / Trivia */}
+        {/* Scene 5: Scratch Card / Gift Box / Constellation / Trivia / WishJar */}
         {(currentScene.type === 'surprise' || currentScene.type === 'curiosity') && (
           <div className="w-full flex flex-col items-center animate-fadeIn">
-            {data.interactionConfiguration?.hasScratchCard ? (
-              <ScratchCard
-                headline={`A Secret Message for ${data.birthdayName}`}
-                hiddenMessage={data.finalWish || "You are loved beyond measure. Keep shining brightly!"}
-              />
-            ) : data.interactionConfiguration?.hasConstellation ? (
+            {(data.interactionConfiguration?.hasConstellation || template.experienceMode === 'nightsky' || template.id.includes('star') || template.category === 'cosmic') ? (
               <ConstellationCanvas
                 starName={data.birthdayName}
                 revealMessage={`The starlight constellation forever shines for ${data.birthdayName}`}
               />
-            ) : data.interactionConfiguration?.hasQuiz ? (
+            ) : (data.interactionConfiguration?.hasQuiz || template.experienceMode === 'arcade' || template.id.includes('trivia') || template.id.includes('chaos')) ? (
               <BirthdayTrivia
                 birthdayName={data.birthdayName}
                 customQuestions={data.interactionConfiguration?.quiz?.questions}
               />
-            ) : data.interactionConfiguration?.hasWishJar ? (
+            ) : (data.interactionConfiguration?.hasScratchCard || template.id.includes('scratch') || template.category === 'romantic') ? (
+              <ScratchCard
+                headline={`A Secret Message for ${data.birthdayName}`}
+                hiddenMessage={data.finalWish || "You are loved beyond measure. Keep shining brightly!"}
+              />
+            ) : (data.interactionConfiguration?.hasWishJar || template.id.includes('wish') || template.category === 'family' || template.category === 'sibling') ? (
               <WishJar
-                wishes={data.interactionConfiguration?.wishJar?.wishes || []}
+                wishes={data.interactionConfiguration?.wishJar?.wishes || [
+                  `May your year ahead be pure magic, ${data.birthdayName}!`,
+                  `Wishing you endless laughter, warmth, and bright days.`,
+                  `May all your silent wishes find their way to reality.`
+                ]}
                 recipientName={data.birthdayName}
               />
             ) : (

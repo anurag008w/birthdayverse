@@ -79,8 +79,51 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
   const [hasGiftBox, setHasGiftBox] = useState(false);
   const [hasScratchCard, setHasScratchCard] = useState(false);
   const [hasQuiz, setHasQuiz] = useState(false);
-  const [hasConstellation, setHasConstellation] = useState(false);
+  const [hasConstellation, setHasConstellation] = useState(
+    initialExperience?.interactionConfiguration?.hasConstellation ?? (initialExperience ? false : true)
+  );
   const [hasWishJar, setHasWishJar] = useState(false);
+
+  // Template Applicator: Reconfigures modules and vibe when a template is picked
+  const applyTemplate = (t: TemplateDefinition) => {
+    setTemplateId(t.id);
+    if (t.moods && t.moods.length > 0) {
+      setMood(t.moods[0]);
+    }
+    setExperienceMode(t.experienceMode);
+
+    if (t.experienceMode === 'nightsky' || t.id.includes('star') || t.category === 'cosmic') {
+      setHasConstellation(true);
+      setHasScratchCard(false);
+      setHasWishJar(false);
+      setHasQuiz(false);
+      setHasGiftBox(false);
+    } else if (t.id.includes('scratch') || t.category === 'romantic') {
+      setHasScratchCard(true);
+      setHasConstellation(false);
+      setHasWishJar(false);
+      setHasQuiz(false);
+      setHasGiftBox(false);
+    } else if (t.id.includes('wish') || t.category === 'family' || t.category === 'sibling') {
+      setHasWishJar(true);
+      setHasScratchCard(false);
+      setHasConstellation(false);
+      setHasQuiz(false);
+      setHasGiftBox(false);
+    } else if (t.experienceMode === 'arcade' || t.id.includes('trivia') || t.id.includes('chaos')) {
+      setHasQuiz(true);
+      setHasScratchCard(false);
+      setHasConstellation(false);
+      setHasWishJar(false);
+      setHasGiftBox(false);
+    } else {
+      setHasGiftBox(true);
+      setHasScratchCard(false);
+      setHasConstellation(false);
+      setHasWishJar(false);
+      setHasQuiz(false);
+    }
+  };
 
   // Persistence status
   const [saveStatus, setSaveStatus] = useState<'local' | 'saving' | 'github_saved' | 'error'>('local');
@@ -552,7 +595,7 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
                   {recommendations.topTemplates.map(({ template: t, matchLabel, reason }) => (
                     <div
                       key={t.id}
-                      onClick={() => setTemplateId(t.id)}
+                      onClick={() => applyTemplate(t)}
                       className={`p-3 rounded-2xl border cursor-pointer transition-all ${
                         templateId === t.id
                           ? 'border-pink-500 bg-pink-500/15 shadow-md'
@@ -721,7 +764,7 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
                     {TEMPLATES_CATALOG.map((t) => (
                       <div
                         key={t.id}
-                        onClick={() => setTemplateId(t.id)}
+                        onClick={() => applyTemplate(t)}
                         className={`p-3 rounded-2xl border cursor-pointer transition-all ${
                           templateId === t.id
                             ? 'border-pink-500 bg-pink-500/20'
