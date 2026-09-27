@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: birthdayverse
+    env: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run preflight && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GITHUB_DATA_BRANCH
+        value: main
+      - key: GITHUB_API_URL
+        value: https://api.github.com
+      - key: GITHUB_API_VERSION
+        value: 2022-11-28
+      - key: GITHUB_COMMITTER_NAME
+        value: BirthdayVerse
+      - key: GITHUB_COMMITTER_EMAIL
+        value: bot@birthdayverse.internal
+      # The following sensitive secrets MUST be supplied through Render Dashboard
+      - key: GITHUB_DATA_REPO
+        sync: false
+      - key: GITHUB_DATA_TOKEN
+        sync: false
+      - key: DATA_ENCRYPTION_KEY
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: MANAGEMENT_TOKEN_SECRET
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_MODEL
+        sync: false
