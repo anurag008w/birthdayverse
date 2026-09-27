@@ -14,8 +14,51 @@
     }
   }
 
+  @keyframes flameFlicker {
+    0%, 100% {
+      transform: scale(1, 1) rotate(-1deg);
+      filter: drop-shadow(0 0 14px rgba(251, 146, 60, 0.9));
+    }
+    25% {
+      transform: scale(1.08, 0.94) rotate(2deg);
+      filter: drop-shadow(0 0 18px rgba(245, 158, 11, 1));
+    }
+    50% {
+      transform: scale(0.94, 1.06) rotate(-2deg);
+      filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.85));
+    }
+    75% {
+      transform: scale(1.05, 1.02) rotate(1deg);
+      filter: drop-shadow(0 0 16px rgba(251, 191, 36, 0.95));
+    }
+  }
+
+  @keyframes smokeRise {
+    0% {
+      opacity: 0.8;
+      transform: translateY(0) scale(0.8) rotate(0deg);
+    }
+    40% {
+      opacity: 0.5;
+      transform: translateY(-16px) scale(1.4) rotate(12deg);
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-38px) scale(2.2) rotate(-12deg);
+    }
+  }
+
   .animate-fadeIn {
     animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-flame {
+    animation: flameFlicker 0.45s infinite ease-in-out alternate;
+    transform-origin: bottom center;
+  }
+
+  .animate-smoke {
+    animation: smokeRise 1.6s ease-out forwards;
   }
 }
 
