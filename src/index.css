@@ -60,6 +60,23 @@
   .animate-smoke {
     animation: smokeRise 1.6s ease-out forwards;
   }
+
+  .crt-scanlines {
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.04), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.04));
+    background-size: 100% 3px, 6px 100%;
+  }
+
+  .newspaper-paper {
+    background-color: #f7f2e7;
+    background-image: radial-gradient(#dfd7c5 0.75px, transparent 0.75px), radial-gradient(#dfd7c5 0.75px, #f7f2e7 0.75px);
+    background-size: 24px 24px;
+    background-position: 0 0, 12px 12px;
+  }
+
+  .washi-tape {
+    background: rgba(255, 237, 213, 0.85);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
 }
 
 body {

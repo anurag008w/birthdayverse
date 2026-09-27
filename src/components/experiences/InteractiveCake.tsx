@@ -3,15 +3,17 @@ import { Sparkles, Mic, RefreshCw, Volume2 } from 'lucide-react';
 import { launchFireworks, launchConfetti } from '../ui/confetti.js';
 import { playBlowoutSound, playChime } from '../../lib/audio/sfx.js';
 
+export type CakeFlavor = 'strawberry' | 'chocolate' | 'rainbow' | 'caramel';
+
 interface CakeProps {
   birthdayName: string;
   age?: number;
   candlesCount?: number;
+  flavor?: CakeFlavor;
+  showFlavorPicker?: boolean;
   blowoutCelebration?: 'fireworks' | 'confetti' | 'stars';
   onBlownOut?: () => void;
 }
-
-type CakeFlavor = 'strawberry' | 'chocolate' | 'rainbow' | 'caramel';
 
 interface FlavorTheme {
   name: string;
@@ -71,11 +73,19 @@ export const InteractiveCake: React.FC<CakeProps> = ({
   birthdayName,
   age,
   candlesCount = 3,
+  flavor: propFlavor = 'chocolate',
+  showFlavorPicker = false,
   onBlownOut
 }) => {
   const actualCandleCount = Math.min(Math.max(candlesCount, 1), 7);
   const [candlesLit, setCandlesLit] = useState<boolean[]>(Array(actualCandleCount).fill(true));
-  const [flavor, setFlavor] = useState<CakeFlavor>('strawberry');
+  const [flavor, setFlavor] = useState<CakeFlavor>((propFlavor as CakeFlavor) || 'chocolate');
+
+  useEffect(() => {
+    if (propFlavor && FLAVORS[propFlavor]) {
+      setFlavor(propFlavor);
+    }
+  }, [propFlavor]);
   const [isListening, setIsListening] = useState(false);
   const [micVolume, setMicVolume] = useState(0);
 
@@ -187,25 +197,27 @@ export const InteractiveCake: React.FC<CakeProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-4 sm:p-6 w-full max-w-xl mx-auto select-none text-center animate-fadeIn">
-      {/* Flavor Selector Chips */}
-      <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-6 bg-black/40 backdrop-blur-md p-1.5 rounded-full border border-white/10 max-w-md">
-        {(Object.keys(FLAVORS) as CakeFlavor[]).map((f) => (
-          <button
-            key={f}
-            onClick={() => {
-              setFlavor(f);
-              playChime(659);
-            }}
-            className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
-              flavor === f
-                ? 'bg-white text-zinc-950 font-bold shadow-md scale-105'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            {FLAVORS[f].name}
-          </button>
-        ))}
-      </div>
+      {/* Flavor Selector Chips (Editor Only) */}
+      {showFlavorPicker && (
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 mb-6 bg-black/40 backdrop-blur-md p-1.5 rounded-full border border-white/10 max-w-md">
+          {(Object.keys(FLAVORS) as CakeFlavor[]).map((f) => (
+            <button
+              key={f}
+              onClick={() => {
+                setFlavor(f);
+                playChime(659);
+              }}
+              className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
+                flavor === f
+                  ? 'bg-white text-zinc-950 font-bold shadow-md scale-105'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              {FLAVORS[f].name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* 3D Realistic Gourmet Cake Stage */}
       <div className="relative w-full max-w-[380px] h-[340px] flex flex-col items-center justify-end mb-6">
@@ -330,10 +342,7 @@ export const InteractiveCake: React.FC<CakeProps> = ({
             className={`w-full h-24 rounded-t-xl rounded-b-2xl bg-gradient-to-b ${currentTheme.cakeBody} shadow-2xl border-t border-white/20 flex flex-col items-center justify-center relative overflow-hidden px-4`}
           >
             {/* Elegant Chocolate Plaque with Recipient's Name */}
-            <div className="bg-gradient-to-r from-amber-950 via-stone-900 to-amber-950 border border-amber-400/60 rounded-xl px-5 py-2 shadow-2xl flex flex-col items-center justify-center z-10 max-w-[220px]">
-              <span className="text-[9px] uppercase tracking-widest text-amber-300 font-mono opacity-80">
-                Crafted for
-              </span>
+            <div className="bg-gradient-to-r from-amber-950 via-stone-900 to-amber-950 border border-amber-400/60 rounded-xl px-6 py-2.5 shadow-2xl flex items-center justify-center z-10 max-w-[220px]">
               <span className="font-serif font-extrabold text-base sm:text-lg text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-white to-amber-300 drop-shadow-md truncate max-w-[200px]">
                 {birthdayName}
               </span>

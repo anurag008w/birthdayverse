@@ -83,14 +83,25 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
     initialExperience?.interactionConfiguration?.hasConstellation ?? (initialExperience ? false : true)
   );
   const [hasWishJar, setHasWishJar] = useState(false);
+  const [cakeFlavor, setCakeFlavor] = useState<'chocolate' | 'strawberry' | 'rainbow' | 'caramel'>('chocolate');
 
-  // Template Applicator: Reconfigures modules and vibe when a template is picked
+  // Template Applicator: Reconfigures modules, archetype and cake vibe when a template is picked
   const applyTemplate = (t: TemplateDefinition) => {
     setTemplateId(t.id);
     if (t.moods && t.moods.length > 0) {
       setMood(t.moods[0]);
     }
     setExperienceMode(t.experienceMode);
+
+    if (t.id.includes('chocolate') || t.experienceMode === 'arcade') {
+      setCakeFlavor('chocolate');
+    } else if (t.id.includes('strawberry') || t.category === 'romantic') {
+      setCakeFlavor('strawberry');
+    } else if (t.id.includes('caramel') || t.category === 'editorial') {
+      setCakeFlavor('caramel');
+    } else if (t.id.includes('rainbow') || t.category === 'playful') {
+      setCakeFlavor('rainbow');
+    }
 
     if (t.experienceMode === 'nightsky' || t.id.includes('star') || t.category === 'cosmic') {
       setHasConstellation(true);
@@ -173,7 +184,7 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
     sceneConfiguration: getTemplateById(templateId).defaultScenes,
     interactionConfiguration: {
       hasCake,
-      cake: { candlesCount: 3, blowoutMethod: 'both', blowoutCelebration: 'fireworks' },
+      cake: { flavor: cakeFlavor, candlesCount: 3, blowoutMethod: 'both', blowoutCelebration: 'fireworks' },
       hasEnvelope,
       envelope: {
         sealColor: '#b91c1c',
@@ -219,16 +230,20 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
     }
   };
 
-  // AI Assistant Action
-  const handleAiAssist = async (style: any) => {
+  // AI Assistant Action (Versatile for all text fields)
+  const handleAiAssist = async (
+    style: any,
+    targetField: 'coreMessage' | 'funnyDetails' | 'finalWish' = 'coreMessage'
+  ) => {
     setAiLoading(true);
-    setAiStatus('Refining your words with love...');
+    setAiStatus('Generating words with love...');
     try {
+      const promptText = targetField === 'funnyDetails' ? funnyDetails : targetField === 'finalWish' ? finalWish : coreMessage;
       const res = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: coreMessage,
+          text: promptText,
           style,
           name: birthdayName,
           relationship
@@ -236,16 +251,22 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
       });
       const data = await res.json();
       if (data.success && data.result) {
-        setCoreMessage(data.result);
-        setAiStatus('Words polished!');
+        if (targetField === 'funnyDetails') {
+          setFunnyDetails(data.result);
+        } else if (targetField === 'finalWish') {
+          setFinalWish(data.result);
+        } else {
+          setCoreMessage(data.result);
+        }
+        setAiStatus('Words generated!');
       } else {
-        setAiStatus(data.error || 'AI assistance unavailable. Manual editing enabled.');
+        setAiStatus('Manual editing enabled.');
       }
     } catch {
-      setAiStatus('AI service temporarily unreachable. Manual editing enabled.');
+      setAiStatus('Manual editing enabled.');
     } finally {
       setAiLoading(false);
-      setTimeout(() => setAiStatus(null), 3500);
+      setTimeout(() => setAiStatus(null), 3000);
     }
   };
 
@@ -527,25 +548,125 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
                 </div>
               </div>
 
+              {/* Gourmet Cake Flavor Chooser */}
+              <div>
+                <label className="block text-xs font-semibold text-zinc-300 uppercase tracking-wider mb-2">
+                  Birthday Cake Style *
+                </label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {[
+                    { id: 'chocolate', label: '🍫 Belgian Truffle' },
+                    { id: 'strawberry', label: '🍓 Strawberry Velvet' },
+                    { id: 'rainbow', label: '🎪 Carnival Confetti' },
+                    { id: 'caramel', label: '🍯 Caramel & Gold' }
+                  ].map((cf) => (
+                    <button
+                      key={cf.id}
+                      type="button"
+                      onClick={() => setCakeFlavor(cf.id as any)}
+                      className={`p-2.5 rounded-xl border text-left font-medium transition-all ${
+                        cakeFlavor === cf.id
+                          ? 'border-pink-500 bg-pink-500/20 text-white font-bold shadow-md'
+                          : 'border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      {cf.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* One Sentence Heartfelt Message */}
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-                    One Heartfelt Thought *
+                    Heartfelt Letter *
                   </label>
                   <button
-                    onClick={() => handleAiAssist('sweet')}
+                    type="button"
+                    onClick={() => handleAiAssist('improve', 'coreMessage')}
                     disabled={aiLoading}
                     className="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1 transition-colors disabled:opacity-50"
                   >
                     <Wand2 className="w-3 h-3" /> Polish with AI
                   </button>
                 </div>
+                <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1 text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => handleAiAssist('sweet', 'coreMessage')}
+                    className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                  >
+                    💖 Sweet
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAiAssist('roast', 'coreMessage')}
+                    className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                  >
+                    😂 Funny Roast
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAiAssist('emotional', 'coreMessage')}
+                    className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700"
+                  >
+                    🥺 Deep & Emotional
+                  </button>
+                </div>
                 <textarea
                   rows={3}
-                  placeholder="What makes them special? (e.g. You always bring light into every day, and I am so grateful to have you in my corner.)"
+                  placeholder="What makes them special?"
                   value={coreMessage}
                   onChange={(e) => setCoreMessage(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-sm text-white focus:border-pink-500 outline-none transition-colors"
+                />
+              </div>
+
+              {/* Inside Jokes & Quirks */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                    Inside Jokes & Quirks
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleAiAssist('fun', 'funnyDetails')}
+                    disabled={aiLoading}
+                    className="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    <Wand2 className="w-3 h-3" /> AI Suggest Quirks
+                  </button>
+                </div>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Always late with iced coffee, obsession with spicy food, certified meme connoisseur."
+                  value={funnyDetails}
+                  onChange={(e) => setFunnyDetails(e.target.value)}
+                  className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-sm text-white focus:border-pink-500 outline-none transition-colors"
+                />
+              </div>
+
+              {/* Final Birthday Wish */}
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                    Closing Birthday Wish
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleAiAssist('final_wish', 'finalWish')}
+                    disabled={aiLoading}
+                    className="text-[11px] text-pink-400 hover:text-pink-300 flex items-center gap-1 transition-colors disabled:opacity-50"
+                  >
+                    <Wand2 className="w-3 h-3" /> AI Generate Wish
+                  </button>
+                </div>
+                <textarea
+                  rows={2}
+                  placeholder="May this year bring you endless peace, laughter, and pure happiness."
+                  value={finalWish}
+                  onChange={(e) => setFinalWish(e.target.value)}
                   className="w-full bg-zinc-900 border border-zinc-700 rounded-xl p-3 text-sm text-white focus:border-pink-500 outline-none transition-colors"
                 />
                 {aiStatus && <p className="text-[11px] text-pink-300 mt-1 italic">{aiStatus}</p>}
@@ -592,25 +713,40 @@ export const CreatorStudio: React.FC<CreatorStudioProps> = ({
                   Recommended Experiences
                 </label>
                 <div className="space-y-2">
-                  {recommendations.topTemplates.map(({ template: t, matchLabel, reason }) => (
-                    <div
-                      key={t.id}
-                      onClick={() => applyTemplate(t)}
-                      className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                        templateId === t.id
-                          ? 'border-pink-500 bg-pink-500/15 shadow-md'
-                          : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-serif font-bold text-sm text-white">{t.name}</span>
-                        <span className="text-[10px] font-mono uppercase bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full border border-pink-500/30">
-                          {matchLabel}
-                        </span>
+                  {recommendations.topTemplates.map(({ template: t, matchLabel, reason }) => {
+                    const archTag = 
+                      t.id.includes('newspaper') || t.id.includes('gazette') || t.category === 'editorial' ? '📰 NEWSPAPER' :
+                      t.experienceMode === 'arcade' || t.id.includes('arcade') || t.id.includes('chaos') ? '🕹️ ARCADE' :
+                      t.id.includes('dossier') || t.id.includes('classified') || t.id.includes('vault') ? '📁 TOP SECRET' :
+                      t.id.includes('scrapbook') || t.id.includes('polaroid') || t.id.includes('open-when') ? '📸 SCRAPBOOK' :
+                      t.experienceMode === 'nightsky' || t.id.includes('star') || t.category === 'cosmic' ? '🌌 DEEP SPACE' :
+                      t.category === 'romantic' ? '💖 ROMANCE' : '👑 ROYAL GALA';
+
+                    return (
+                      <div
+                        key={t.id}
+                        onClick={() => applyTemplate(t)}
+                        className={`p-3 rounded-2xl border cursor-pointer transition-all ${
+                          templateId === t.id
+                            ? 'border-pink-500 bg-pink-500/15 shadow-md'
+                            : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700'
+                        }`}
+                      >
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-serif font-bold text-sm text-white flex items-center gap-2">
+                            <span>{t.name}</span>
+                            <span className="text-[9px] font-mono uppercase bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded border border-zinc-700">
+                              {archTag}
+                            </span>
+                          </span>
+                          <span className="text-[10px] font-mono uppercase bg-pink-500/20 text-pink-300 px-2 py-0.5 rounded-full border border-pink-500/30">
+                            {matchLabel}
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-400">{t.tagline}</p>
                       </div>
-                      <p className="text-xs text-zinc-400">{t.tagline}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
