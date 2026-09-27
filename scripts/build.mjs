@@ -18,7 +18,7 @@ fs.mkdirSync(ASSETS_DIR, { recursive: true });
 console.log('[BirthdayVerse] Compiling Tailwind CSS...');
 try {
   execSync(
-    './node_modules/.bin/tailwind -i src/index.css -o dist/assets/app.css --minify',
+    'npx tailwindcss -i src/index.css -o dist/assets/app.css --minify',
     { cwd: ROOT_DIR, stdio: 'inherit' }
   );
   console.log('[BirthdayVerse] CSS compilation complete: dist/assets/app.css');
@@ -31,7 +31,7 @@ try {
 console.log('[BirthdayVerse] Bundling React TypeScript application with esbuild...');
 try {
   execSync(
-    './node_modules/.bin/esbuild src/main.tsx --bundle --minify --format=esm --target=es2022 --outfile=dist/assets/app.js',
+    'npx esbuild src/main.tsx --bundle --minify --format=esm --target=es2022 --outfile=dist/assets/app.js',
     { cwd: ROOT_DIR, stdio: 'inherit' }
   );
   console.log('[BirthdayVerse] Client bundle generated: dist/assets/app.js');
